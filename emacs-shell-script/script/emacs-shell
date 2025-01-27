@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+set -eu
+set -o pipefail
+
+readonly SELF="${BASH_SOURCE[0]}"
+readonly BASE_SELF=$(basename "$SELF")
+
+OPT_HELP=
+OPT_DEBUG=
+OPT_VERBOSE=
+OPT_RUN=
+
+error () { echo "Error: $@" >&2; exit 1; }
+
+display_usage () {
+  cat <<EOF
+Usage: $BASE_SELF [OPTIONS]
+
+Options:
+-h, --help       Display this help message.
+-d, --debug      Enable debug mode.
+-v, --verbose    Enable verbose output.
+-r, --run        Run the Emacs shell.
+
+To run the Emacs, here is the command:
+emacs-shell -r / --run
+EOF
+  exit 0
+}
+
+track_emacs_shell () {
+
+  cd ~/emacs-shell || { echo "Failed to change directory to ~/emacs-shell." && return 1; }
+
+  nix-shell --run "emacs" &
+  local emacs_pid=$!  
+  echo "Loading Emacs shell.." 
+
+  if ps -p "$emacs_pid" > /dev/null; then
+    sleep 4.5
+    echo "Loaded successfully!"
+  else
+    echo "Emacs shell Closed unexpectedly!"
+  fi
+
+  wait "$emacs_pid"  
+  echo "Emacs shell Closed!"
+}
+
+run_main () {
+  echo -e "Finding Emacs shell directory...."
+  track_emacs_shell
+}
+
+parse_arguments() {
+  local valid_commands=(
+    -h --help
+    -d --debug
+    -v --verbose
+    -r --run
+  )
+
+  for arg in "$@"; do
+    if [[ " ${valid_commands[*]} " =~ " $arg " ]]; then
+      case "$arg" in
+        -h|--help) OPT_HELP=1 ;;
+        -d|--debug) OPT_DEBUG=1 ;;
+        -v|--verbose) OPT_VERBOSE=1 ;;
+        -r|--run) OPT_RUN=1 ;;
+      esac
+    else
+      error "Invalid command '$arg'. Please see '$BASE_SELF --help.'"
+    fi
+  done
+}
+
+process_options () {
+  if [[ -n "$OPT_HELP" ]]; then
+    display_usage
+  fi
+
+  if [[ -n "$OPT_RUN" ]]; then
+    run_main
+  fi
+}
+
+main () {
+  parse_arguments "$@"
+  process_options
+}
+
+main "$@"

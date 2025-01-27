@@ -1,0 +1,24 @@
+#+TITLE: Emacs shell Script
+#+AUTHOR: Nycto
+#+language: en
+#+startup: overview
+
+* Purpose
+This script serves to run my development environment—Emacs that much faster than executing a lot of commands like going on my development environment—shell.nix, Emacs:
+#+begin_src shell
+$ cd ~/emacs-shell
+$ nix-shell
+$ emacs
+#+end_src
+Since I always use Emacs everyday it tires me to repeatedly doing commands above so I made a script to run my Emacs—development environment much faster than those commands.
+
+* zshenv
+Make sure your zshenv configuration has:
+#+begin_Src shell
+export PATH="$HOME/your-specified-path-for-scripts:$PATH"  
+#+end_src
+* Run script
+#+begin_src shell
+$ emacs-shell -h # Display help
+$ emacs-shell -r # Run Emacs
+#+end_Src

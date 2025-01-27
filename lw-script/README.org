@@ -1,0 +1,24 @@
+#+TITLE: LispWorks Script
+#+AUTHOR: Nycto
+#+language: en
+#+startup: overview
+
+* Purpose
+This script serves to run a LispWorks inside my NixOS machine, since there is no supported installation of LispWorks on NixOS environment. The LispWorks is manually installed inside Ubuntu Image on Docker container. The script purpose is to easily run the LispWorks inside my NixOS shell without doing a long command in docker. It consists of error handlings and a functionalities—main entry point, display help, etc.
+
+* zshenv
+Make sure your zshenv configuration has:
+#+begin_Src shell
+export PATH="$HOME/your-specified-path-for-scripts:$PATH"  
+#+end_src
+* Run script
+Enable xhost:
+#+begin_src shell
+xhost +
+#+end_Src
+
+To run the script:
+#+begin_src shell
+run-lw.sh
+#+end_src
+

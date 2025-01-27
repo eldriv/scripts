@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+
+set -eu
+set -o pipefail
+
+readonly SELF="${BASH_SOURCE[0]}"
+readonly BASE_SELF=$(basename "$SELF")
+readonly WORDPRESS_DIR="/home/nycto/docker-wordpress"
+
+OPT_HELP=
+OPT_DEBUG=
+OPT_VERBOSE=
+OPT_RUN=
+OPT_STOP=
+
+error () { echo "Error: $@" >&2; exit 1; }
+
+display_usage () {
+  cat <<EOF
+Usage: $BASE_SELF [OPTIONS]
+
+Options:
+-h, --help       Display this help message.
+-d, --debug      Enable debug mode.
+-v, --verbose    Enable verbose output.
+-r, --run        Run the WordPress Docker Compose.
+-s, --stop       Stop the Wordpress Docker Services.
+To run and kill the WordPress, here is the command:
+$BASE_SELF -r, --run
+$BASE_SELF -s, --stop
+EOF
+  exit 0
+}
+
+debug() {
+  if [[ -n "$OPT_DEBUG" ]]; then
+    echo "[DEBUG] $@"
+  fi
+}
+
+run_wordpress() {
+  debug "Starting WordPress services..."
+
+  # Navigate the Docker Compose directory
+  cd "$WORDPRESS_DIR" || { echo "Directory not found!"; return 1; }
+
+  # Start the Docker Compose services
+  if ! docker compose up -d; then
+    error "Failed to execute Docker Compose."
+  fi
+
+ # Open the web browser automatically
+  if command -v firefox &> /dev/null; then
+    echo "Successfully opened http://localhost:8080/ in your web browser."
+    firefox http://localhost:8080/
+    else
+    echo "Failed to open http://localhost:8080/."
+  fi
+}
+
+stop_wordpress() {
+  # Navigate the Docker Compose directory
+  cd "$WORDPRESS_DIR" || { echo "Directory not found!"; return 1; }
+
+  if [ "$(docker ps -q)" ]; then
+    # If T it automatically stop and remove containers.
+    if docker compose down; then
+      echo "WordPress successfully closed!"
+    else
+      error "WordPress cannot be closed!"
+    fi
+  else
+    echo "There are no services to close."
+  fi
+
+}
+
+parse_arguments() {
+  local valid_commands=(
+    -h --help
+    -d --debug
+    -v --verbose
+    -r --run
+    -s --stop
+  )
+
+  for arg in "$@"; do
+    if [[ " ${valid_commands[*]} " =~ " $arg " ]]; then
+      case "$arg" in
+        -h|--help) OPT_HELP=1 ;;
+        -d|--debug) OPT_DEBUG=1 ;;
+        -v|--verbose) OPT_VERBOSE=1 ;;
+        -r|--run) OPT_RUN=1 ;;
+        -s|--stop) OPT_STOP=1 ;;
+      esac
+    else
+      error "Invalid command '$arg'. Please see '$BASE_SELF --help.'"
+    fi
+  done
+}
+
+
+process_options () {
+  if [[ -n "$OPT_HELP" ]]; then
+    display_usage
+  fi
+
+  if [[ -n "$OPT_RUN" ]]; then
+    run_wordpress
+  fi
+
+  if [[ -n "$OPT_STOP" ]]; then
+    stop_wordpress
+  fi
+   
+ if [[ -n "$OPT_VERBOSE" ]]; then
+    echo "Starting Docker Compose in $WORDPRESS_DIR"
+ fi
+
+
+}
+
+main () {
+  parse_arguments "$@"
+  process_options
+}
+
+main "$@"

@@ -1,0 +1,1 @@
+This repository contains of all my shell scripts inside my NixOS machine.

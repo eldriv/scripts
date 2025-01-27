@@ -1,0 +1,106 @@
+#+TITLE: WP Script
+#+LANGUAGE: en
+#+STARTUP: overview
+
+* WordPress Script
+
+This repository contains a WordPress script that allows you to run and stop WordPress from a Docker container easily.
+
+** Overview
+
+Instead of manually navigating to the WordPress directory and typing the following commands:
+
+#+BEGIN_SRC shell
+$ cd ~/path/to/directory/of/wordpress
+$ docker compose up -d ; Starts the containers defined in the docker-compose.yml file
+#+END_SRC
+
+You can simply run:
+
+#+BEGIN_SRC shell
+$ wordpress -r
+#+END_SRC
+
+*** Example Output for Running
+
+#+BEGIN_SRC shell
+nycto krad ~ 
+> wordpress -r
+[+] Running 4/4
+ ✔ Network docker-wordpress_wpsite          Created                        0.1s 
+ ✔ Container docker-wordpress-db-1          Started                        0.5s 
+ ✔ Container docker-wordpress-wordpress-1   Started                        0.8s 
+ ✔ Container docker-wordpress-phpmyadmin-1  Started                        0.8s 
+Successfully opened http://localhost:8080/ in your web browser.
+#+END_SRC
+
+** Stopping WordPress Services
+
+To stop the WordPress services, use:
+
+#+BEGIN_SRC shell
+$ wordpress -s
+#+END_SRC
+
+*** Example Output for Stopping
+
+#+BEGIN_SRC shell
++] Running 4/4
+ ✔ Container docker-wordpress-phpmyadmin-1  Removed     1.3s 
+ ✔ Container docker-wordpress-wordpress-1   Removed        1.3s 
+ ✔ Container docker-wordpress-db-1          Removed           1.7s 
+ ✔ Network docker-wordpress_wpsite          Removed        0.2s 
+WordPress successfully closed!
+#+END_SRC
+
+*** Verify Stopping
+
+You can verify that the services have stopped by checking the running containers:
+
+#+BEGIN_SRC shell
+$ docker ps 
+# or running again this command:
+$ wordpress -s 
+There are no services to close.
+#+END_SRC
+
+
+** Commands
+
+- **Verbose**:
+  #+BEGIN_SRC shell
+  $ wordpress -v
+  #+END_SRC
+  Output:
+  #+BEGIN_SRC shell
+  Starting Docker Compose in /home/nycto/docker-wordpress
+  #+END_SRC
+
+- **Help**: Display help information.
+  #+BEGIN_SRC shell
+  $ wordpress -h
+  #+END_SRC
+  Output:
+  #+BEGIN_SRC shell
+  Usage: wordpress [OPTIONS]
+
+  Options:
+  -h, --help       Display this help message.
+  -d, --debug      Enable debug mode.
+  -v, --verbose    Enable verbose output.
+  -r, --run        Run the WordPress Docker Compose.
+  -s, --stop       Stop the WordPress Docker Services.
+  #+END_SRC
+
+** Summary
+
+This script provides commands to display help, run, and stop a local WordPress session using the Docker Compose service. Once it runs, it automatically directs you to localhost:8080. The aim is to reduce setup time and avoid port conflicts when starting a WordPress session on localhost.
+
+*** Quick Commands
+
+To run and stop WordPress, use the following commands:
+
+#+BEGIN_SRC shell
+wordpress -r  ; Run
+wordpress -s  ; Stop
+#+END_SRC
