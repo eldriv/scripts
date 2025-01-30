@@ -5,11 +5,18 @@ set -o pipefail
 
 readonly SELF="${BASH_SOURCE[0]}"
 readonly BASE_SELF=$(basename "$SELF")
+readonly MYFLAKE_DIR=~/myflake #change this based on your flake directory
+readonly EMACS_WAIT_TIME=4.5
 
 OPT_HELP=
 OPT_DEBUG=
 OPT_VERBOSE=
 OPT_RUN=
+OPT_SHOW=
+OPT_UPDATE=
+OPT_EDIT=
+OPT_SHELL=
+OPT_SBCLV=
 
 error () { echo "Error: $@" >&2; exit 1; }
 
@@ -18,39 +25,73 @@ display_usage () {
 Usage: $BASE_SELF [OPTIONS]
 
 Options:
--h, --help       Display this help message.
 -d, --debug      Enable debug mode.
--v, --verbose    Enable verbose output.
+-e, --edit       Edit the Lisp flake.
+-h, --help       Display this help message.
 -r, --run        Run the Emacs shell.
+-s, --show       Show output attribute of the Lisp flake.
+-t, --shell      Enter emacs nix shell environment. 
+-u, --update     Update the Lisp nix flake.
+-v, --verbose    Enable verbose output.
 
-To run the Emacs, here is the command:
-emacs-shell -r / --run
+To check SBCL's version:
+--sbcl-v 
+
 EOF
   exit 0
 }
 
-track_emacs_shell () {
-
-  cd ~/emacs-shell || { echo "Failed to change directory to ~/emacs-shell." && return 1; }
-
-  nix-shell --run "emacs" &
-  local emacs_pid=$!  
-  echo "Loading Emacs shell.." 
-
-  if ps -p "$emacs_pid" > /dev/null; then
-    sleep 4.5
-    echo "Loaded successfully!"
-  else
-    echo "Emacs shell Closed unexpectedly!"
-  fi
-
-  wait "$emacs_pid"  
-  echo "Emacs shell Closed!"
+safe_cd() {
+  cd "$MYFLAKE_DIR" || error "Failed to change directory to $MYFLAKE_DIR"
 }
 
+run_main_dir_flake () {
+  safe_cd
+  "$@" 
+}
+
+run_emacs_shell () {
+  run_main_dir_flake oof develop .#lisp -c emacs &
+  local emacs_pid=$!
+  
+  echo "Loading Emacs shell.."
+  if wait -n "$emacs_pid"; then
+    sleep "$EMACS_WAIT_TIME"
+    echo "Loaded successfully!"
+  else
+    echo "Emacs shell closed unexpectedly!"
+  fi
+}
+
+update_flake () {
+  safe_cd
+  echo -e "Lisp flake updated"
+  oof update
+}
+
+show_flake_output () {
+  safe_cd
+  echo -e "OUTPUT:"
+  oof show
+}
+
+edit_lisp_flake () {
+  safe_cd
+  vim flake.nix || nano flake.nix
+}
+
+enter_emacs_shell () {
+  run_main_dir_flake oof develop .#lisp
+}
+
+check_sbcl_version () {
+  run_main_dir_flake oof develop .#lisp -c sbcl --version
+}
+
+# Entry-point to emacs
 run_main () {
   echo -e "Finding Emacs shell directory...."
-  track_emacs_shell
+  run_emacs_shell
 }
 
 parse_arguments() {
@@ -59,15 +100,25 @@ parse_arguments() {
     -d --debug
     -v --verbose
     -r --run
+    -s --show
+    -u --update
+    -e --edit
+    -t --shell
+    --sbcl-v
   )
 
-  for arg in "$@"; do
-    if [[ " ${valid_commands[*]} " =~ " $arg " ]]; then
+for arg in "$@"; do
+   if [[ " ${valid_commands[*]} " =~ " $arg " ]]; then
       case "$arg" in
         -h|--help) OPT_HELP=1 ;;
         -d|--debug) OPT_DEBUG=1 ;;
         -v|--verbose) OPT_VERBOSE=1 ;;
         -r|--run) OPT_RUN=1 ;;
+        -u|--update) OPT_UPDATE=1 ;;
+        -s|--show) OPT_SHOW=1 ;;      
+        -e|--edit) OPT_EDIT=1 ;;
+        -t|--shell) OPT_SHELL=1 ;;
+        --sbcl-v) OPT_SBCLV=1 ;;
       esac
     else
       error "Invalid command '$arg'. Please see '$BASE_SELF --help.'"
@@ -76,13 +127,13 @@ parse_arguments() {
 }
 
 process_options () {
-  if [[ -n "$OPT_HELP" ]]; then
-    display_usage
-  fi
-
-  if [[ -n "$OPT_RUN" ]]; then
-    run_main
-  fi
+  [[ -n "$OPT_HELP" ]] && display_usage
+  [[ -n "$OPT_RUN" ]] && run_main
+  [[ -n "$OPT_UPDATE" ]] && update_flake
+  [[ -n "$OPT_SHOW" ]] && show_flake_output
+  [[ -n "$OPT_EDIT" ]] && edit_lisp_flake
+  [[ -n "$OPT_SHELL" ]] && enter_emacs_shell
+  [[ -n "$OPT_SBCLV" ]] && check_sbcl_version
 }
 
 main () {
