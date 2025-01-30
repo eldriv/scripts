@@ -78,14 +78,8 @@ parse_arguments () {
 }
 
 process_options () {
-  if [[ -n "$OPT_HELP" ]]; then
-    display_usage
-  fi
-  
-  if [[ -n "$OPT_END" ]]; then
-    display_end_session
-  fi
- 
+  [[ -n "$OPT_HELP" ]] && display_usage
+  [[ -n "$OPT_END" ]] && display_end_session
 }
 
 main () {
