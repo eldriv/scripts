@@ -1,4 +1,4 @@
-# This repository contain end-session script which has an option of hibernate and suspend. 
+This repository contain end-session script which has an option of hibernate and suspend. 
 
 # End session script
 Instead of manually typing:
