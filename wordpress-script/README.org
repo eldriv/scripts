@@ -67,7 +67,7 @@ There are no services to close.
 
 ** Commands
 
-- **Verbose**:
+- Verbose:
   #+BEGIN_SRC shell
   $ wordpress -v
   #+END_SRC
@@ -76,7 +76,7 @@ There are no services to close.
   Starting Docker Compose in /home/nycto/docker-wordpress
   #+END_SRC
 
-- **Help**: Display help information.
+- Help: Display help information.
   #+BEGIN_SRC shell
   $ wordpress -h
   #+END_SRC
