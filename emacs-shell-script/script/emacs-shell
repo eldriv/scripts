@@ -81,11 +81,11 @@ edit_lisp_flake () {
 }
 
 enter_emacs_shell () {
-  run_main_dir_flake nix flake develop .#lisp
+  run_main_dir_flake nix develop .#lisp
 }
 
 check_sbcl_version () {
-  run_main_dir_flake nix flake develop .#lisp -c sbcl --version
+  run_main_dir_flake nix develop .#lisp -c sbcl --version
 }
 
 # Entry-point to emacs
