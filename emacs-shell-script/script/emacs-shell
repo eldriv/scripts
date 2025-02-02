@@ -51,7 +51,7 @@ run_main_dir_flake () {
 }
 
 run_emacs_shell () {
-  run_main_dir_flake oof develop .#lisp -c emacs &
+  run_main_dir_flake nix flake develop .#lisp -c emacs &
   local emacs_pid=$!
   
   echo "Loading Emacs shell.."
@@ -66,13 +66,13 @@ run_emacs_shell () {
 update_flake () {
   safe_cd
   echo -e "Lisp flake updated"
-  oof update
+  nix flake update
 }
 
 show_flake_output () {
   safe_cd
   echo -e "OUTPUT:"
-  oof show
+  nix flake show
 }
 
 edit_lisp_flake () {
@@ -81,11 +81,11 @@ edit_lisp_flake () {
 }
 
 enter_emacs_shell () {
-  run_main_dir_flake oof develop .#lisp
+  run_main_dir_flake nix flake develop .#lisp
 }
 
 check_sbcl_version () {
-  run_main_dir_flake oof develop .#lisp -c sbcl --version
+  run_main_dir_flake nix flake develop .#lisp -c sbcl --version
 }
 
 # Entry-point to emacs
