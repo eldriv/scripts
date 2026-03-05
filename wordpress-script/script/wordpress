@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# WordPress Docker launcher — macOS, Windows (Git Bash/WSL), and Linux (2026)
 
 set -eu
 set -o pipefail
@@ -6,6 +7,16 @@ set -o pipefail
 readonly SELF="${BASH_SOURCE[0]}"
 readonly BASE_SELF=$(basename "$SELF")
 readonly WORDPRESS_DIR="${PWD}/docker-wordpress"
+
+# Detect OS for cross-platform behavior (macOS, Windows Git Bash/MSYS, Linux)
+detect_os() {
+  case "$(uname -s 2>/dev/null)" in
+    Darwin)   echo "macos" ;;
+    MINGW*|MSYS*|CYGWIN*) echo "windows" ;;
+    *)        echo "linux" ;;
+  esac
+}
+readonly PLATFORM=$(detect_os)
 
 OPT_HELP=
 OPT_DEBUG=
@@ -49,13 +60,47 @@ run_wordpress() {
     error "Failed to execute Docker Compose."
   fi
 
- # Open the web browser automatically
-  if command -v firefox &> /dev/null; then
-    echo "Successfully opened http://localhost:8080/ in your web browser."
-    firefox http://localhost:8080/
-    else
-    echo "Failed to open http://localhost:8080/."
-  fi
+  # Open the default web browser (macOS, Windows Git Bash, Linux)
+  open_browser "http://localhost:8080/"
+}
+
+open_browser() {
+  local url="${1:-http://localhost:8080/}"
+  case "$PLATFORM" in
+    macos)
+      if command -v open &>/dev/null; then
+        echo "Successfully opened $url in your web browser."
+        open "$url"
+      else
+        echo "Could not open browser. Visit $url manually."
+      fi
+      ;;
+    windows)
+      if command -v cmd.exe &>/dev/null; then
+        echo "Successfully opened $url in your web browser."
+        cmd.exe //c start "" "$url"
+      elif command -v start &>/dev/null; then
+        echo "Successfully opened $url in your web browser."
+        start "$url"
+      else
+        echo "Could not open browser. Visit $url manually."
+      fi
+      ;;
+    linux)
+      if command -v xdg-open &>/dev/null; then
+        echo "Successfully opened $url in your web browser."
+        xdg-open "$url"
+      elif command -v firefox &>/dev/null; then
+        echo "Successfully opened $url in Firefox."
+        firefox "$url"
+      else
+        echo "Could not open browser. Visit $url manually."
+      fi
+      ;;
+    *)
+      echo "Visit $url in your browser."
+      ;;
+  esac
 }
 
 stop_wordpress() {

@@ -4,7 +4,14 @@
 
 * WordPress Script
 
-This repository contains a WordPress script that allows you to run and stop WordPress from a Docker container easily.
+This repository contains a WordPress script that allows you to run and stop WordPress from a Docker container easily. Compatible with *macOS*, *Windows*, and *Linux* (2026).
+
+** Requirements
+
+- Docker Desktop (macOS, Windows, or Linux)
+- On macOS/Linux or Windows (WSL/Git Bash): run the bash script =script/wordpress=
+- On Windows (native): run the PowerShell script =script/wordpress.ps1= (if execution is restricted, run =Set-ExecutionPolicy -Scope CurrentUser RemoteSigned= once, or =powershell -ExecutionPolicy Bypass -File script/wordpress.ps1 -Run=)
+- Optional: =make= (GNU Make) for =make init=, =make run=, =make stop= — on Windows use Git Bash or install Make (e.g. Chocolatey/Scoop).
 
 ** Overview
 
@@ -17,8 +24,15 @@ $ docker compose up -d ; Starts the containers defined in the docker-compose.yml
 
 You can simply run:
 
+- macOS / Linux / Git Bash (bash):
 #+BEGIN_SRC shell
-$ wordpress -r
+$ ./script/wordpress -r
+# or if installed on PATH:  wordpress -r
+#+END_SRC
+
+- Windows (PowerShell):
+#+BEGIN_SRC powershell
+PS> .\script\wordpress.ps1 -Run
 #+END_SRC
 
 *** Example Output for Running
@@ -38,8 +52,14 @@ Successfully opened http://localhost:8080/ in your web browser.
 
 To stop the WordPress services, use:
 
+- Bash (macOS / Linux / Git Bash):
 #+BEGIN_SRC shell
-$ wordpress -s
+$ ./script/wordpress -s
+#+END_SRC
+
+- Windows (PowerShell):
+#+BEGIN_SRC powershell
+PS> .\script\wordpress.ps1 -Stop
 #+END_SRC
 
 *** Example Output for Stopping
@@ -92,15 +112,65 @@ There are no services to close.
   -s, --stop       Stop the WordPress Docker Services.
   #+END_SRC
 
+** Platform notes (2026)
+
+- *macOS*: Uses =open= to open the default browser. Run =script/wordpress= with bash (zsh is fine).
+- *Windows*: Use =script/wordpress.ps1= in PowerShell, or =script/wordpress= in Git Bash / WSL; the script opens the default browser via =Start-Process= (PowerShell) or =cmd //c start= (Git Bash).
+- *Linux*: Uses =xdg-open= or =firefox= to open the browser.
+
+Ensure a folder named =docker-wordpress= exists in your current directory and contains =docker-compose.yaml= (e.g. copy from =yaml/docker-compose.yaml=), or run =make init= once to create it.
+
+** Makefile (macOS & Windows)
+
+From the project root (where the Makefile lives):
+
+#+BEGIN_SRC shell
+make help   # show targets
+make init   # create docker-wordpress/ and copy docker-compose.yaml (run once)
+make run    # init + start WordPress and open browser
+make stop   # stop WordPress
+make clean  # remove docker-wordpress/
+make install   # (macOS/Linux) chmod +x script/wordpress
+make list-users   # list WordPress users (stack must be running)
+make reset-pw USER=admin PASS=yournewpassword   # reset admin password
+#+END_SRC
+
+On Windows, run =make= from Git Bash or from a shell where =make= is available (e.g. Chocolatey). =make run= and =make stop= automatically use the PowerShell script on Windows and the bash script on macOS/Linux.
+
+** Reset WordPress admin password
+
+If you forgot your wp-admin password (the one you set on first install):
+
+1. Ensure the stack is running (=make run=).
+2. List users to find the login name: =make list-users=
+3. Set a new password:
+#+BEGIN_SRC shell
+make reset-pw USER=admin PASS=mynewpassword
+#+END_SRC
+   (Use your actual username and desired password.) Then log in at http://localhost:8080/wp-admin
+
+Without Make (containers running, from =docker-wordpress/=):
+#+BEGIN_SRC shell
+docker compose exec wordpress php /var/www/html/reset-wp-password.php
+docker compose exec wordpress php /var/www/html/reset-wp-password.php admin mynewpassword
+#+END_SRC
+
 ** Summary
 
-This script provides commands to display help, run, and stop a local WordPress session using the Docker Compose service. Once it runs, it automatically directs you to localhost:8080. The aim is to reduce setup time and avoid port conflicts when starting a WordPress session on localhost.
+This script provides commands to display help, run, and stop a local WordPress session using Docker Compose. Once it runs, it opens your default browser to http://localhost:8080. The aim is to reduce setup time and avoid port conflicts when starting a WordPress session on localhost.
 
 *** Quick Commands
 
-To run and stop WordPress, use the following commands:
+To run and stop WordPress:
 
 #+BEGIN_SRC shell
-wordpress -r  ; Run
-wordpress -s  ; Stop
+# Bash (macOS / Linux / Git Bash)
+./script/wordpress -r   # Run
+./script/wordpress -s   # Stop
+#+END_SRC
+
+#+BEGIN_SRC powershell
+# Windows PowerShell
+.\script\wordpress.ps1 -Run
+.\script\wordpress.ps1 -Stop
 #+END_SRC
